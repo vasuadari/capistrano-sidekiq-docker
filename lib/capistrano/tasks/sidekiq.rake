@@ -2,16 +2,16 @@ namespace :load do
   task :defaults do
     set :sidekiq_default_hooks, -> { true }
 
-    set :sidekiq_release_path, -> { nil }
-    set :sidekiq_shared_path, -> { nil }
-    set :sidekiq_pid, -> { File.join(fetch(:sidekiq_shared_path) || fetch(:shared_path), 'tmp', 'pids', 'sidekiq.pid') }
+    set :sidekiq_release_path, -> { release_path }
+    set :sidekiq_shared_path, -> { shared_path }
+    set :sidekiq_pid, -> { File.join(fetch(:sidekiq_shared_path), 'tmp', 'pids', 'sidekiq.pid') }
     set :sidekiq_role, -> { :app }
     set :sidekiq_processes, -> { 1 }
     set :sidekiq_user, -> { nil }
     set :sidekiq_docker_compose_file_path, -> { '/etc/docker/sidekiq/docker-compose.yml' }
     set :sidekiq_docker_env_options, -> { nil }
     set :sidekiq_docker_container_name, -> { nil }
-    set :sidekiq_docker_image_name, -> { 'sidekiq' }
+    set :sidekiq_docker_image_name, -> { :sidekiq }
   end
 end
 
@@ -71,6 +71,7 @@ namespace :sidekiq do
 
   task :add_default_hooks do
     after 'deploy:starting', 'sidekiq:quiet'
+    before 'deploy:updated', 'sidekiq:bundle'
     after 'deploy:updated', 'sidekiq:stop'
     after 'deploy:reverted', 'sidekiq:stop'
     after 'deploy:published', 'sidekiq:start'
@@ -86,6 +87,17 @@ namespace :sidekiq do
               quiet_sidekiq(pid_file)
             end
           end
+        end
+      end
+    end
+  end
+
+  desc 'Bundle install'
+  task :bundle do
+    on roles fetch(:sidekiq_role) do |role|
+      switch_user(role) do
+        if test("[ -d #{fetch(:sidekiq_release_path)} ]")
+          execute "#{fetch(:sidekiq_docker_env_options)} docker-compose -f #{fetch(:sidekiq_docker_compose_file_path)} run #{fetch(:sidekiq_docker_image_name)} bundle install --without development test --deployment --quiet"
         end
       end
     end
