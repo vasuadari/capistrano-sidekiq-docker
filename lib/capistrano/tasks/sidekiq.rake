@@ -12,6 +12,10 @@ namespace :load do
     set :sidekiq_docker_env_options, -> { nil }
     set :sidekiq_docker_container_name, -> { nil }
     set :sidekiq_docker_image_name, -> { :sidekiq }
+    # Bundler options
+    set :sidekiq_bundle_gemfile, -> { release_path.join('Gemfile') }
+    set :sidekiq_bundle_without, %w{development test}.join(' ')
+    set :sidekiq_bundle_flags, '--deployment --quiet'
   end
 end
 
@@ -49,6 +53,10 @@ namespace :sidekiq do
     pids
   end
 
+  def pid_process_exists?(pid_file)
+    pid_file_exists?(pid_file) and test(*("docker exec -i #{fetch(:sidekiq_docker_container_name)} kill -0 $( cat #{pid_file} )").split(' '))
+  end
+
   def pid_file_exists?(pid_file)
     test(*("[ -f #{pid_file} ]").split(' '))
   end
@@ -83,7 +91,7 @@ namespace :sidekiq do
       switch_user(role) do
         if test("[ -d #{fetch(:sidekiq_release_path)} ]") # fixes #11
           for_each_process(true) do |pid_file, idx|
-            if pid_file_exists?(pid_file)
+            if pid_process_exists?(pid_file)
               quiet_sidekiq(pid_file)
             end
           end
@@ -97,7 +105,7 @@ namespace :sidekiq do
     on roles fetch(:sidekiq_role) do |role|
       switch_user(role) do
         if test("[ -d #{fetch(:sidekiq_release_path)} ]")
-          execute "#{fetch(:sidekiq_docker_env_options)} docker-compose -f #{fetch(:sidekiq_docker_compose_file_path)} run #{fetch(:sidekiq_docker_image_name)} bundle install --without development test --deployment --quiet"
+          execute "#{fetch(:sidekiq_docker_env_options)} docker-compose -f #{fetch(:sidekiq_docker_compose_file_path)} run #{fetch(:sidekiq_docker_image_name)} bundle install --gemfile #{fetch(:sidekiq_bundle_gemfile)} --without #{fetch(:sidekiq_bundle_without)} #{fetch(:sidekiq_bundle_flags)}"
         end
       end
     end
@@ -109,7 +117,7 @@ namespace :sidekiq do
       switch_user(role) do
         if test("[ -d #{fetch(:sidekiq_release_path)} ]")
           for_each_process(true) do |pid_file, idx|
-            if pid_file_exists?(pid_file)
+            if pid_process_exists?(pid_file)
               stop_sidekiq(pid_file)
             end
           end
@@ -150,8 +158,8 @@ namespace :sidekiq do
     on roles fetch(:sidekiq_role) do |role|
       switch_user(role) do
         for_each_process do |pid_file, idx|
-          if pid_file_exists?(pid_file)
-            execute "rm #{pid_file}" unless pid_file_exists?(pid_file)
+          if pid_process_exists?(pid_file)
+            execute "rm #{pid_file}" unless pid_process_exists?(pid_file)
           end
         end
       end

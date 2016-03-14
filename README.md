@@ -48,4 +48,5 @@ set :sidekiq_docker_image_name, -> { 'sidekiq' }
 
 ## Changelog
 
+* 0.2.1: Fixing bundle install options, Checking if process is running before stopping sidekiq
 * 0.2: Added bundle install support for docker
