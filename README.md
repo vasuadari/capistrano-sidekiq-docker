@@ -1,6 +1,6 @@
 # Capistrano-sidekiq-docker
 
-Capistrano support to deploy sidekiq on docker
+Added capistrano support to deploy sidekiq on the docker containers.
 
 ## Installation
 
@@ -21,16 +21,16 @@ require 'capistrano/sidekiq'
 Configurable options:
 
 ```ruby
-    set :sidekiq_release_path, -> { nil }
-    set :sidekiq_shared_path, -> { nil }
-    set :sidekiq_pid, -> { File.join(fetch(:sidekiq_shared_path) || fetch(:shared_path), 'tmp', 'pids', 'sidekiq.pid') }
-    set :sidekiq_role, -> { :app }
-    set :sidekiq_processes, -> { 1 }
-    set :sidekiq_user, -> { nil }
-    set :sidekiq_docker_compose_file_path, -> { '/etc/docker/sidekiq/docker-compose.yml' }
-    set :sidekiq_docker_env_options, -> { nil }
-    set :sidekiq_docker_container_name, -> { nil }
-    set :sidekiq_docker_image_name, -> { 'sidekiq' }
+set :sidekiq_release_path, -> { nil }
+set :sidekiq_shared_path, -> { nil }
+set :sidekiq_pid, -> { File.join(fetch(:sidekiq_shared_path) || fetch(:shared_path), 'tmp', 'pids', 'sidekiq.pid') }
+set :sidekiq_role, -> { :app }
+set :sidekiq_processes, -> { 1 }
+set :sidekiq_user, -> { nil }
+set :sidekiq_docker_compose_file_path, -> { '/etc/docker/sidekiq/docker-compose.yml' }
+set :sidekiq_docker_env_options, -> { nil }
+set :sidekiq_docker_container_name, -> { nil }
+set :sidekiq_docker_image_name, -> { 'sidekiq' }
 ```
 
 ## Contributing
