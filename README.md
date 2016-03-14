@@ -2,6 +2,11 @@
 
 Added capistrano support to deploy sidekiq on the docker containers.
 
+## Requirements
+
+1. Capistrano >= 3.0
+2. Setup your container using docker-compose
+
 ## Installation
 
     gem 'capistrano-sidekiq-docker', group: :development
