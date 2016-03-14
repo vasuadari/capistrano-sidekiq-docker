@@ -45,3 +45,7 @@ set :sidekiq_docker_image_name, -> { 'sidekiq' }
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## Changelog
+
+* 0.2: Added bundle install support for docker
